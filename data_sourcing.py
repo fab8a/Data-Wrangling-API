@@ -1,13 +1,26 @@
-import requests, json
+import requests
+from pymongo import MongoClient
+import config
 
-response = requests.get('https://api.sportsdata.io/v3/nfl/scores/json/Players?key=76ef6fbf494e4afabcfdb8669644c1cf')
+client = MongoClient(f'mongodb+srv://{config.username}:{config.password}@cluster101.ryj3opk.mongodb.net/?retryWrites=true&w=majority') 
+database = config.database
+collection = config.collection
 
-if response.status_code == 200:
-    # If succesfull response -> get content as JSON
-    data = response.json()
-
-    with open('api_data.json', 'w') as file:
-        json.dump(data, file)
-    print('Datos guardados en archivo JSON.')
+if database in client.list_database_names():
+    print(f'{database} is already populated in MongoDB.')
+    client.close()
 else:
-    print('Error al realizar la peticion al API.')
+    response = requests.get('https://api.sportsdata.io/v3/nfl/scores/json/Players?key=76ef6fbf494e4afabcfdb8669644c1cf')
+    if response.status_code == 200:
+        # Reespuesta exitosa de solicitud a API -> guardar contenido como JSON 
+        data = response.json()
+
+        client = MongoClient(f'mongodb+srv://{config.username}:{config.password}@cluster101.ryj3opk.mongodb.net/?retryWrites=true&w=majority')
+        db = client[database]
+        col = db[collection]
+        col.insert_many(data)
+        print('Data written into MongoDB.')
+    else:
+        print('Error ocurred while making the API request.')
+    client.close()
+
