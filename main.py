@@ -1,10 +1,9 @@
-import json, config
+import config
 import pandas as pd
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from pymongo import MongoClient
 
-app = FastAPI()
 client = MongoClient(f'mongodb+srv://{config.username}:{config.password}@cluster101.ryj3opk.mongodb.net/?retryWrites=true&w=majority') 
 db = client[config.database]
 col = db[config.collection]
@@ -16,6 +15,8 @@ columns_to_keep = ['Name', 'Team', 'Position', 'Age', 'Height', 'Weight', 'Colle
 df_selected = df.loc[:, columns_to_keep]
 data = df_selected
 client.close()
+
+app = FastAPI()
 
 @app.get('/')
 async def root():
